@@ -14,9 +14,9 @@ DelayRound2AudioProcessor::DelayRound2AudioProcessor()
      : AudioProcessor (BusesProperties()
                        .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                       )
+                       ), params(apvts)
 {
-    //nothing
+    //No haga nada
 }
 
 DelayRound2AudioProcessor::~DelayRound2AudioProcessor()
@@ -88,7 +88,8 @@ void DelayRound2AudioProcessor::changeProgramName (int index, const juce::String
 //==============================================================================
 void DelayRound2AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-
+    params.prepareToPlay(sampleRate);
+    params.reset();
 }
 
 void DelayRound2AudioProcessor::releaseResources()
@@ -114,17 +115,20 @@ void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         buffer.clear (i, 0, buffer.getNumSamples());
     
     //DSP
-    float gainIndB = apvts.getRawParameterValue("gain")->load();
+    params.update();
     
-    float gain = juce::Decibels::decibelsToGain(gainIndB);
+    float *channelDataL = buffer.getWritePointer(0);
+    float *channelDataR = buffer.getWritePointer(1);
     
-    for (int channel = 0; channel <totalNumInputChannels; ++channel){
-        auto* channelData = buffer.getWritePointer(channel);
+    for (int sample = 0; sample < buffer.getNumSamples(); ++sample){
         
-        for (int sample = 0; sample < buffer.getNumSamples(); ++sample){
-            channelData[sample] *= gain;
-        }
+        params.smoothen();
+        
+        channelDataL[sample] *= params.gain;
+        channelDataR[sample] *= params.gain;
     }
+    
+ 
 }
 
 //==============================================================================
@@ -158,20 +162,7 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
     return new DelayRound2AudioProcessor();
 }
 
-juce::AudioProcessorValueTreeState::ParameterLayout
-    DelayRound2AudioProcessor::createParameterLayout()
-{
-    juce::AudioProcessorValueTreeState::ParameterLayout layout;
-        
-        layout.add(std::make_unique<juce::AudioParameterFloat>(
-            juce::ParameterID { "gain", 1 }, //ID {string, version (Int)}
-            "Output Gain", // User visible text
-            juce::NormalisableRange<float> { -12.0f, 12.0f }, //Range of Values
-            0.0f) //Default Value
-        );
-        
-        return layout;
-}
+
 
 
 

@@ -9,7 +9,9 @@
 #pragma once
 
 #include <JuceHeader.h>
-//#include "Parameters.h"
+#include "Parameters.h"
+
+//constantes
 
 
 //==============================================================================
@@ -62,12 +64,14 @@ private:
     //User added
     
     //Varialbes/Objetos
+    
+
     juce::AudioProcessorValueTreeState apvts{
-        *this, nullptr, "Parameters", createParameterLayout()
+        *this, nullptr, "Parameters", Parameters::createParameterLayout()
     };
-    
+
+    Parameters params; // debe ir debajo de la inicialización del apvts
+
     //Funciones
-    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
-    
 };
 
