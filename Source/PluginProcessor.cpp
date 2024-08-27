@@ -142,20 +142,23 @@ void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         float delayInSamples = (params.delayTime/1000.0f) * sampleRate;
         delayLine.setDelay(delayInSamples);
         
-        float dryL = channelDataL[sample];
+        float dryL = channelDataL[sample]; //Lee los valores que entran
         float dryR = channelDataR[sample];
         
         delayLine.pushSample(0, dryL); //meter valor actual en delay line
         delayLine.pushSample(1, dryR);
         
-        float wetL = delayLine.popSample(0); //Leer valor pasado
-        float wetR = delayLine.popSample(1);
+        dryL *= params.drySignal; //Aplica el % de Dry para la salida
+        dryR *= params.drySignal;
         
-        float mixL = dryL + (wetL * params.mix);
-        float mixR = dryR + (wetR * params.mix);
+        float wetL = delayLine.popSample(0) * params.wetSignal; //Leer valor pasado
+        float wetR = delayLine.popSample(1) * params.wetSignal;
+       
+        float mixL = dryL + wetL;
+        float mixR = dryR + wetR;
         
-        channelDataL[sample] = mixL * params.gain;
-        channelDataR[sample] = mixR * params.gain;
+        channelDataL[sample] = mixL * params.outGain;
+        channelDataR[sample] = mixR * params.outGain;
 
     }
     

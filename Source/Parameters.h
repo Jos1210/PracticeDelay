@@ -4,19 +4,20 @@
 #include <JuceHeader.h>
 
 //Consts
-const juce::ParameterID gainParamID { "gain", 1 };
+const juce::ParameterID outGainParamID { "outGain", 1 };
 const juce::ParameterID delayTimeParamID { "delayTime", 1 };
-const juce::ParameterID mixParamID { "mix", 1 };
-
+const juce::ParameterID drySignalParamID {"Dry", 1};
+const juce::ParameterID wetSignalParamID {"Wet", 1};
 
 
 class Parameters
 {
 public:
     //Varialbes / objetos
-    float gain = 0.0f;
+    float outGain = 0.0f;
     float delayTime = 0.0f;
-    float mix = 1.0f;
+    float drySignal = 1.0; //Will reference amount of dry in %
+    float wetSignal = 0.5f; //Will reference amount of wet in %
     
     static constexpr float minDelayTime = 5.0f; //t en ms
     static constexpr float maxDelayTime = 5000.0f;
@@ -33,14 +34,19 @@ public:
 private:
     
     //Varialbes
-    juce::AudioParameterFloat *gainParam;
-    juce::LinearSmoothedValue<float> gainSmoother;
+    juce::AudioParameterFloat *outGainParam;
+    juce::LinearSmoothedValue<float> outGainSmoother;
+    
+    juce::AudioParameterFloat *drySignalParam;
+    juce::LinearSmoothedValue<float> drySignalSmoother;
+    
+    juce::AudioParameterFloat *wetSignalParam;
+    juce::LinearSmoothedValue<float> wetSignalSmoother;
     
     juce::AudioParameterFloat *delayTimeParam;
     float targetDelayTime = 0.0f; //The one pole filter will try to reach this value
     float delayOnePoleCoeff = 0.0f; // Determines how fast the smoothing will happen
     
-    juce::AudioParameterFloat *mixParam;
-    juce::LinearSmoothedValue<float> mixSmoother;
+    
     
 };

@@ -34,9 +34,11 @@ static juce::String stringFromPercent(float value, int){
 //Constructor
 Parameters::Parameters(juce::AudioProcessorValueTreeState &apvts){
     
-    castParameter(apvts, gainParamID, gainParam); //Asigna un puntero para ese param
+    castParameter(apvts, outGainParamID, outGainParam); //Asigna un puntero para ese param
     castParameter(apvts, delayTimeParamID, delayTimeParam);
-    castParameter(apvts, mixParamID, mixParam);
+    castParameter(apvts, drySignalParamID, drySignalParam);
+    castParameter(apvts, wetSignalParamID, wetSignalParam);
+
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout
@@ -44,14 +46,37 @@ juce::AudioProcessorValueTreeState::ParameterLayout
 {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
         
+        //out Gain
         layout.add(std::make_unique<juce::AudioParameterFloat>(
-            gainParamID, //ID {string, version (Int)}
+            outGainParamID, //ID {string, version (Int)}
             "Output Gain", // User visible text
             juce::NormalisableRange<float> { -12.0f, 12.0f }, //Range of Values
             0.0f, //Default Value
             juce::AudioParameterFloatAttributes() //Changes the way values are displayed, receives a function
                 .withStringFromValueFunction(stringFromDecibels)
             ));
+        
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            drySignalParamID, //ID {string, version (Int)}
+            "Dry", // User visible text
+            juce::NormalisableRange<float> {0.0f, 100.0f, 1.0f},
+                                        // {range min, range max, step size, skew factor}
+            100.0f,
+            juce::AudioParameterFloatAttributes() //Changes the way values are displayed
+                .withStringFromValueFunction(stringFromPercent)
+        ));
+        
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            wetSignalParamID, //ID {string, version (Int)}
+            "Wet", // User visible text
+            juce::NormalisableRange<float> {0.0f, 100.0f, 1.0f},
+                                        // {range min, range max, step size, skew factor}
+            50.0f,
+            juce::AudioParameterFloatAttributes() //Changes the way values are displayed
+                .withStringFromValueFunction(stringFromPercent)
+        ));
+        
+        //Delay
         
         layout.add(std::make_unique<juce::AudioParameterFloat>(
             delayTimeParamID, //ID {string, version (Int)}
@@ -63,15 +88,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout
                 .withStringFromValueFunction(stringFromMilliseconds)
         ));
         
-        layout.add(std::make_unique<juce::AudioParameterFloat>(
-            mixParamID, //ID {string, version (Int)}
-            "Mix", // User visible text
-            juce::NormalisableRange<float> {0.0f, 100.0f, 1.0f},
-                                        // {range min, range max, step size, skew factor}
-            50.0f,
-            juce::AudioParameterFloatAttributes() //Changes the way values are displayed
-                .withStringFromValueFunction(stringFromPercent)
-        ));
+        
         
         return layout;
 }
@@ -81,48 +98,60 @@ void Parameters::update() noexcept{
     Obtiene el valor actual de gain y si es distinto al anterior, prepara el
      smoother para actuar y remover el zipper noise; setea el target
     */
-    gainSmoother.setTargetValue(juce::Decibels::decibelsToGain(gainParam->get()));
+    outGainSmoother.setTargetValue(juce::Decibels::decibelsToGain(outGainParam->get()));
+    drySignalSmoother.setTargetValue(drySignalParam->get() * 0.01f);
+    wetSignalSmoother.setTargetValue(wetSignalParam->get() * 0.01f);
     
     //Delay smoothing and set value
     targetDelayTime = delayTimeParam ->get();
     if(delayTime == 0.0f)
         delayTime = targetDelayTime;
     
-    mixSmoother.setTargetValue(mixParam->get() * 0.01f);
+    
+
     
 }
 
 void Parameters::prepareToPlay(double sampleRate) noexcept{
     
     double duration = 0.02;
-    gainSmoother.reset(sampleRate, duration); //le dice al smoother el tiempo de transición entre muestras y lo inicializa
+    outGainSmoother.reset(sampleRate, duration); //le dice al smoother el tiempo de transición entre muestras y lo inicializa
+    drySignalSmoother.reset(sampleRate, duration);
+    wetSignalSmoother.reset(sampleRate, duration);
     
     delayOnePoleCoeff = 1.0f - std::exp(-1.0f / (0.2f * float(sampleRate))); //Investigar funcionamiento de One pole filters
     //0.2 = despues de 200 ms el onepole alcanzara el target en un 63.2%, esta formula imita la carga de un condensador
     //Entre mas pequeño el coef, mas tardara el filtro en alcanzar el target
     
-    mixSmoother.reset(sampleRate, duration);
+    
 
 }
 
 void Parameters::reset() noexcept{
     
-    gain = 0.0f;
-    gainSmoother.setCurrentAndTargetValue( //Setea Gain a 0 por precaución antes de repr
-        juce::Decibels::decibelsToGain(gainParam->get())
+    outGain = 0.0f;
+    drySignal = 1.0f;
+    wetSignal = 0.0f;
+    
+    outGainSmoother.setCurrentAndTargetValue( //Setea Gain a 0 por precaución antes de repr
+        juce::Decibels::decibelsToGain(outGainParam->get())
     );
+    
+    drySignalSmoother.setCurrentAndTargetValue(drySignalParam->get() * 0.01f); // 0.01 para deshacer porcentaje
+    wetSignalSmoother.setCurrentAndTargetValue(wetSignalParam->get() * 0.01f); // 0.01 para deshacer porcentaje
+
     
     delayTime = 0.0f;
     
-    mix = 5.0f;
-    mixSmoother.setCurrentAndTargetValue(mixParam->get() * 0.01f);
+   
     
 }
 
 void Parameters:: smoothen() noexcept{
-    gain = gainSmoother.getNextValue(); //Lee el valor que entrega el smoother
+    outGain = outGainSmoother.getNextValue(); //Lee el valor que entrega el smoother
+    drySignal = drySignalSmoother.getNextValue();
+    wetSignal = wetSignalSmoother.getNextValue();
     
     delayTime += (targetDelayTime - delayTime) * delayOnePoleCoeff;
     
-    mix = mixSmoother.getNextValue();
 }
