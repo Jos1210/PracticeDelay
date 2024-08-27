@@ -20,6 +20,7 @@
 class DelayRound2AudioProcessor  : public juce::AudioProcessor
 {
 public:
+    
     //==============================================================================
     DelayRound2AudioProcessor();
     ~DelayRound2AudioProcessor() override;
@@ -57,6 +58,11 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
     
+    //User Defined
+    juce::AudioProcessorValueTreeState apvts{
+        *this, nullptr, "Parameters", Parameters::createParameterLayout()
+    };
+    
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DelayRound2AudioProcessor)
@@ -66,9 +72,7 @@ private:
     //Varialbes/Objetos
     
 
-    juce::AudioProcessorValueTreeState apvts{
-        *this, nullptr, "Parameters", Parameters::createParameterLayout()
-    };
+    
     
     Parameters params; // debe ir debajo de la inicialización del apvts
 

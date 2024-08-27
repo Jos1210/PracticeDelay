@@ -7,15 +7,17 @@
               pluginManufacturerCode="Raip" pluginCode="Raid" pluginFormats="buildAU,buildVST3">
   <MAINGROUP id="O81Np2" name="Delay-Round2">
     <GROUP id="{6B1DE780-54B7-3A42-CF85-039C4E169415}" name="Source">
+      <FILE id="QWBwUI" name="Parameters.cpp" compile="1" resource="0" file="Source/Parameters.cpp"/>
+      <FILE id="uD9ZAd" name="Parameters.h" compile="0" resource="0" file="Source/Parameters.h"/>
+      <FILE id="xAmk2w" name="PluginEditor.cpp" compile="1" resource="0"
+            file="Source/PluginEditor.cpp"/>
+      <FILE id="mGjDhv" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
       <FILE id="USDma0" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="cvaVEK" name="PluginProcessor.h" compile="0" resource="0"
             file="Source/PluginProcessor.h"/>
-      <FILE id="xAmk2w" name="PluginEditor.cpp" compile="1" resource="0"
-            file="Source/PluginEditor.cpp"/>
-      <FILE id="mGjDhv" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
-      <FILE id="QWBwUI" name="Parameters.cpp" compile="1" resource="0" file="Source/Parameters.cpp"/>
-      <FILE id="uD9ZAd" name="Parameters.h" compile="0" resource="0" file="Source/Parameters.h"/>
+      <FILE id="NOF49y" name="RotaryKnob.cpp" compile="1" resource="0" file="Source/RotaryKnob.cpp"/>
+      <FILE id="rOEVPv" name="RotaryKnob.h" compile="0" resource="0" file="Source/RotaryKnob.h"/>
     </GROUP>
   </MAINGROUP>
   <MODULES>

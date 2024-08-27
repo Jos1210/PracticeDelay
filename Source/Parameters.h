@@ -48,5 +48,5 @@ private:
     float delayOnePoleCoeff = 0.0f; // Determines how fast the smoothing will happen
     
     
-    
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Parameters)
 };

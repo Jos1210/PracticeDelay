@@ -10,6 +10,8 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "Parameters.h"
+#include "RotaryKnob.h"
 
 //==============================================================================
 /**
@@ -19,15 +21,23 @@ class DelayRound2AudioProcessorEditor  : public juce::AudioProcessorEditor
 public:
     DelayRound2AudioProcessorEditor (DelayRound2AudioProcessor&);
     ~DelayRound2AudioProcessorEditor() override;
-
+    
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
-
+    
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
-    DelayRound2AudioProcessor& audioProcessor;
+    
+    DelayRound2AudioProcessor& audioProcessor; //Debe ir de primero
+    
+    
+    //Objetos/variables
+    RotaryKnob outGainKnob{ "Out Gain", audioProcessor.apvts, outGainParamID };
+    
+    /*
+    juce::AudioProcessorValueTreeState::SliderAttachment attachment{ //Objeto attachment para enlazar outGain y componente
+        audioProcessor.apvts, outGainParamID.getParamID(), outGainKnob.slider}; //Para hacer sin implementarlo en el const de la custom class
+    */
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DelayRound2AudioProcessorEditor) //Maneja automaticamente memory leaks
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DelayRound2AudioProcessorEditor)
 };
