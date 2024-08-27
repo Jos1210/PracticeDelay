@@ -69,9 +69,11 @@ private:
     juce::AudioProcessorValueTreeState apvts{
         *this, nullptr, "Parameters", Parameters::createParameterLayout()
     };
-
+    
     Parameters params; // debe ir debajo de la inicialización del apvts
 
+    juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> delayLine;
+    
     //Funciones
 };
 
