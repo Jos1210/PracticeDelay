@@ -10,6 +10,7 @@ static void castParameter(juce::AudioProcessorValueTreeState &apvts,
     jassert(destination); //Checks if param exists or is wrong
 }
 
+
 static juce::String stringFromMilliseconds(float value, int){
     if (value < 10.0f){
         return juce::String(value, 2) + " ms"; //(valor, n decimales)
@@ -22,14 +23,29 @@ static juce::String stringFromMilliseconds(float value, int){
     }
 }
 
+
+static float millisecondsFromString(const juce::String &text){
+    
+    float value = text.getFloatValue();
+    
+    if(!text.endsWithIgnoreCase("ms"))
+        if (text.endsWithIgnoreCase("s") || value <Parameters::minDelayTime)
+            return value*1000.0f;
+    
+    return value;
+}
+
+
 static juce::String stringFromDecibels(float value, int){       //Static menas it can only be used in this file
     
     return juce::String(value, 1) + "dB";
 }
 
+
 static juce::String stringFromPercent(float value, int){
     return juce::String(int(value)) + " %";
 }
+
 
 //Constructor
 Parameters::Parameters(juce::AudioProcessorValueTreeState &apvts){
@@ -38,6 +54,7 @@ Parameters::Parameters(juce::AudioProcessorValueTreeState &apvts){
     castParameter(apvts, delayTimeParamID, delayTimeParam);
     castParameter(apvts, drySignalParamID, drySignalParam);
     castParameter(apvts, wetSignalParamID, wetSignalParam);
+    castParameter(apvts, feedbackParamID, feedbackParam);
 
 }
 
@@ -62,8 +79,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout
             juce::NormalisableRange<float> {0.0f, 100.0f, 1.0f},
                                         // {range min, range max, step size, skew factor}
             100.0f,
-            juce::AudioParameterFloatAttributes() //Changes the way values are displayed
-                .withStringFromValueFunction(stringFromPercent)
+            juce::AudioParameterFloatAttributes()
+                .withStringFromValueFunction(stringFromPercent) //Changes the way values are displayed
         ));
         
         layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -72,7 +89,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout
             juce::NormalisableRange<float> {0.0f, 100.0f, 1.0f},
                                         // {range min, range max, step size, skew factor}
             50.0f,
-            juce::AudioParameterFloatAttributes() //Changes the way values are displayed
+            juce::AudioParameterFloatAttributes()
                 .withStringFromValueFunction(stringFromPercent)
         ));
         
@@ -84,8 +101,19 @@ juce::AudioProcessorValueTreeState::ParameterLayout
             juce::NormalisableRange<float> {minDelayTime, maxDelayTime, 0.001f, 0.25f},
                                         // {range min, range max, step size, skew factor}
             100.0f,
-            juce::AudioParameterFloatAttributes() //Changes the way values are displayed
+            juce::AudioParameterFloatAttributes()
                 .withStringFromValueFunction(stringFromMilliseconds)
+                .withValueFromStringFunction(millisecondsFromString) //Changes the way values are given by user
+        ));
+        
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            feedbackParamID, //ID {string, version (Int)}
+            "Feedback", // User visible text
+            juce::NormalisableRange<float> {0.0f, 100.0f, 1.0f},
+                                        // {range min, range max, step size, skew factor}
+            40.0f,
+            juce::AudioParameterFloatAttributes()
+                .withStringFromValueFunction(stringFromPercent)
         ));
         
         
@@ -107,7 +135,7 @@ void Parameters::update() noexcept{
     if(delayTime == 0.0f)
         delayTime = targetDelayTime;
     
-    
+    feedbackSmoother.setTargetValue(feedbackParam->get() * 0.01f);
 
     
 }
@@ -122,6 +150,8 @@ void Parameters::prepareToPlay(double sampleRate) noexcept{
     delayOnePoleCoeff = 1.0f - std::exp(-1.0f / (0.2f * float(sampleRate))); //Investigar funcionamiento de One pole filters
     //0.2 = despues de 200 ms el onepole alcanzara el target en un 63.2%, esta formula imita la carga de un condensador
     //Entre mas pequeño el coef, mas tardara el filtro en alcanzar el target
+    
+    feedbackSmoother.reset(sampleRate, duration);
     
     
 
@@ -143,6 +173,8 @@ void Parameters::reset() noexcept{
     
     delayTime = 0.0f;
     
+    feedback = 0.0f;
+    feedbackSmoother.setCurrentAndTargetValue(feedbackParam->get() * 0.01f);
    
     
 }
@@ -153,5 +185,6 @@ void Parameters:: smoothen() noexcept{
     wetSignal = wetSignalSmoother.getNextValue();
     
     delayTime += (targetDelayTime - delayTime) * delayOnePoleCoeff;
+    feedback = feedbackSmoother.getNextValue();
     
 }

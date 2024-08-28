@@ -70,7 +70,8 @@ private:
     //User added
     
     //Varialbes/Objetos
-    
+    float feedbackL = 0.0f;
+    float feedbackR = 0.0f;
 
     
     

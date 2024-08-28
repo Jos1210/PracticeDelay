@@ -33,6 +33,15 @@ private:
     
     //Objetos/variables
     RotaryKnob outGainKnob{ "Out Gain", audioProcessor.apvts, outGainParamID };
+    RotaryKnob delayTimeKnob{ "Delay Time", audioProcessor.apvts, delayTimeParamID };
+    RotaryKnob drySignalKnob{ "Dry", audioProcessor.apvts, drySignalParamID };
+    RotaryKnob wetSignalKnob{ "Wet", audioProcessor.apvts, wetSignalParamID };
+    RotaryKnob feedbackKnob{ "Feedback", audioProcessor.apvts, feedbackParamID};
+    
+    juce::GroupComponent delayGroup, feedbackGroup, outputGroup;
+
+
+
     
     /*
     juce::AudioProcessorValueTreeState::SliderAttachment attachment{ //Objeto attachment para enlazar outGain y componente

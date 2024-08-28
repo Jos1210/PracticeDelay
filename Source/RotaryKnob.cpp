@@ -27,7 +27,6 @@ RotaryKnob::RotaryKnob(const juce::String &text,
     
     //Label
     label.setText(text, juce::NotificationType::dontSendNotification); //NotificationType...Para no enviar notif a "listeners"
-    label.setText("Out Gain", juce::NotificationType::dontSendNotification);
     label.setJustificationType(juce::Justification::horizontallyCentred); //Donde se va a ubicar según el componente
     label.setBorderSize(juce::BorderSize<int>(0)); // "Empuja" el componente desde una dirección (top, left, bottom right)
     label.attachToComponent(&slider, false); //Indica que siempre ira pegado a este componente

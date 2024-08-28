@@ -8,14 +8,17 @@ const juce::ParameterID outGainParamID { "outGain", 1 };
 const juce::ParameterID delayTimeParamID { "delayTime", 1 };
 const juce::ParameterID drySignalParamID {"Dry", 1};
 const juce::ParameterID wetSignalParamID {"Wet", 1};
+const juce::ParameterID feedbackParamID {"Feedback", 1};
 
 
 class Parameters
 {
 public:
     //Varialbes / objetos
-    float outGain = 0.0f;
     float delayTime = 0.0f;
+    float feedback = 0.0f;
+    
+    float outGain = 0.0f;
     float drySignal = 1.0; //Will reference amount of dry in %
     float wetSignal = 0.5f; //Will reference amount of wet in %
     
@@ -46,6 +49,9 @@ private:
     juce::AudioParameterFloat *delayTimeParam;
     float targetDelayTime = 0.0f; //The one pole filter will try to reach this value
     float delayOnePoleCoeff = 0.0f; // Determines how fast the smoothing will happen
+    
+    juce::AudioParameterFloat *feedbackParam;
+    juce::LinearSmoothedValue<float> feedbackSmoother;
     
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Parameters)
