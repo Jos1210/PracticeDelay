@@ -10,6 +10,8 @@ const juce::ParameterID drySignalParamID {"Dry", 1};
 const juce::ParameterID wetSignalParamID {"Wet", 1};
 const juce::ParameterID feedbackParamID {"Feedback", 1};
 const juce::ParameterID stereoParamID{ "Stereo", 1};
+const juce::ParameterID lowCutParamID { "lowCut", 1 };
+const juce::ParameterID highCutParamID{ "highCut", 1};
 
 
 class Parameters
@@ -25,6 +27,9 @@ public:
     
     float panL = 0.0f;
     float panR = 1.0f;
+    
+    float lowCut = 20.0f;
+    float highCut = 20000.0f;
     
     static constexpr float minDelayTime = 5.0f; //t en ms
     static constexpr float maxDelayTime = 5000.0f;  //here static means it can be called as a variable instead of class member
@@ -60,6 +65,11 @@ private:
     juce::AudioParameterFloat *stereoParam;
     juce::LinearSmoothedValue<float> stereoSmoother;
     
+    juce::AudioParameterFloat *lowCutParam;
+    juce::LinearSmoothedValue<float> lowCutSmoother;
+    
+    juce::AudioParameterFloat *highCutParam;
+    juce::LinearSmoothedValue<float> highCutSmoother;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Parameters)
 };

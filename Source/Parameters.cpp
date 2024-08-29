@@ -13,6 +13,7 @@ static void castParameter(juce::AudioProcessorValueTreeState &apvts,
 
 
 static juce::String stringFromMilliseconds(float value, int){
+    
     if (value < 10.0f){
         return juce::String(value, 2) + " ms"; //(valor, n decimales)
     }else if (value < 100.0f){
@@ -47,6 +48,26 @@ static juce::String stringFromPercent(float value, int){
     return juce::String(int(value)) + " %";
 }
 
+static juce::String stringFromHz(float value, int){
+    
+    if (value < 1000.0f)
+        return juce::String(int(value)) + " Hz";
+    
+    if (value < 10000.0f)
+        return juce::String(value / 1000.0f, 2) + " kHz";
+    
+    return juce::String(value / 1000.0f, 2) + " kHz";
+}
+
+static float hzFromString(const juce::String & str){
+    
+    float value = str.getFloatValue();
+    
+    if (value < 20.0f)
+        return value * 1000.0f;
+    
+    return value;
+}
 
 //Constructor
 Parameters::Parameters(juce::AudioProcessorValueTreeState &apvts){
@@ -57,6 +78,8 @@ Parameters::Parameters(juce::AudioProcessorValueTreeState &apvts){
     castParameter(apvts, wetSignalParamID, wetSignalParam);
     castParameter(apvts, feedbackParamID, feedbackParam);
     castParameter(apvts, stereoParamID, stereoParam);
+    castParameter(apvts, lowCutParamID, lowCutParam);
+    castParameter(apvts, highCutParamID, highCutParam);
 
 }
 
@@ -108,6 +131,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout
                 .withValueFromStringFunction(millisecondsFromString) //Changes the way values are given by user
         ));
         
+        //Feedback
+        
         layout.add(std::make_unique<juce::AudioParameterFloat>(
             feedbackParamID, //ID {string, version (Int)}
             "Feedback", // User visible text
@@ -126,6 +151,28 @@ juce::AudioProcessorValueTreeState::ParameterLayout
             0.0f,
             juce::AudioParameterFloatAttributes()
                 .withStringFromValueFunction(stringFromPercent)
+        ));
+        
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            lowCutParamID, //ID {string, version (Int)}
+            "Low Cut", // User visible text
+            juce::NormalisableRange<float> {20.0f, 20000.0f, 1.0f, 0.3f},
+                                        // {range min, range max, step size, skew factor}
+            20.0f,
+            juce::AudioParameterFloatAttributes()
+                .withStringFromValueFunction(stringFromHz)
+                .withValueFromStringFunction(hzFromString)
+        ));
+        
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            highCutParamID, //ID {string, version (Int)}
+            "High Cut", // User visible text
+            juce::NormalisableRange<float> {20.0f, 20000.0f, 1.0f, 0.3f},
+                                        // {range min, range max, step size, skew factor}
+            20000.0f,
+            juce::AudioParameterFloatAttributes()
+                .withStringFromValueFunction(stringFromHz)
+                .withValueFromStringFunction(hzFromString)
         ));
         
         
@@ -149,6 +196,9 @@ void Parameters::update() noexcept{
     
     feedbackSmoother.setTargetValue(feedbackParam->get() * 0.01f);
     stereoSmoother.setTargetValue(stereoParam->get() * 0.01f);
+    
+    lowCutSmoother.setTargetValue(lowCutParam->get());
+    highCutSmoother.setTargetValue(highCutParam->get());
 
     
 }
@@ -166,6 +216,9 @@ void Parameters::prepareToPlay(double sampleRate) noexcept{
     
     feedbackSmoother.reset(sampleRate, duration);
     stereoSmoother.reset(sampleRate, duration);
+    
+    lowCutSmoother.reset(sampleRate, duration);
+    highCutSmoother.reset(sampleRate, duration);
     
 
 }
@@ -193,8 +246,13 @@ void Parameters::reset() noexcept{
     feedbackSmoother.setCurrentAndTargetValue(feedbackParam->get() * 0.01f);
     
     stereoSmoother.setCurrentAndTargetValue(stereoParam->get() * 0.01f);
-   
     
+    lowCut = 20.0f;
+    highCut = 20000.0f;
+    
+    lowCutSmoother.setTargetValue(lowCutParam->get());
+    highCutSmoother.setTargetValue(highCutParam->get());
+   
 }
 
 void Parameters:: smoothen() noexcept{
@@ -206,4 +264,7 @@ void Parameters:: smoothen() noexcept{
     feedback = feedbackSmoother.getNextValue();
     
     panningEqualPower(stereoSmoother.getNextValue(), panL, panR);
+    
+    lowCut = lowCutSmoother.getNextValue();
+    highCut = highCutSmoother.getNextValue();
 }

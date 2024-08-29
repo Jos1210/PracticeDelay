@@ -16,7 +16,8 @@ DelayRound2AudioProcessor::DelayRound2AudioProcessor()
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                        ), params(apvts)
 {
-    //No haga nada
+    lowCutFilter.setType(juce::dsp::StateVariableTPTFilterType::highpass);
+    highCutFilter.setType(juce::dsp::StateVariableTPTFilterType::lowpass);
 }
 
 DelayRound2AudioProcessor::~DelayRound2AudioProcessor()
@@ -91,6 +92,7 @@ void DelayRound2AudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     params.prepareToPlay(sampleRate);
     params.reset();
     
+    //Process specification object
     juce::dsp::ProcessSpec spec;
     spec.sampleRate = sampleRate;
     spec.maximumBlockSize = juce::uint32(samplesPerBlock);
@@ -98,6 +100,7 @@ void DelayRound2AudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     
     delayLine.prepare(spec); //asigna las especificaciones de spec
     
+    //Inicializa el Delay
     double numSamples = (Parameters::maxDelayTime / 1000.0f) * sampleRate;
     int maxDelayInSamples = int(std::ceil(numSamples));
     delayLine.setMaximumDelayInSamples(maxDelayInSamples);
@@ -106,6 +109,12 @@ void DelayRound2AudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     //Feedback
     feedbackL = 0.0f;
     feedbackR = 0.0f;
+    
+    //Filtering
+    lowCutFilter.prepare(spec);
+    highCutFilter.prepare(spec);
+    lowCutFilter.reset();
+    highCutFilter.reset();
 }
 
 void DelayRound2AudioProcessor::releaseResources()
@@ -176,8 +185,12 @@ void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     for (int sample = 0; sample < buffer.getNumSamples(); ++sample){
         
         params.smoothen();
+        
         float delayInSamples = (params.delayTime/1000.0f) * sampleRate;
         delayLine.setDelay(delayInSamples);
+        
+        lowCutFilter.setCutoffFrequency(params.lowCut);
+        highCutFilter.setCutoffFrequency(params.highCut);
         
         float dryL = inputDataL[sample]; //Lee los valores que entran
         float dryR = inputDataR[sample];
@@ -189,11 +202,17 @@ void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         dryL *= params.drySignal; //Aplica el % de Dry para la salida
         dryR *= params.drySignal;
         
-        float wetL = delayLine.popSample(0) * params.wetSignal; //Leer valor pasado
+        float wetL = delayLine.popSample(0) * params.wetSignal; //Leer valor del pasado
         float wetR = delayLine.popSample(1) * params.wetSignal;
         
+        //Define feedback y filtra el feedback
         feedbackL = wetL * params.feedback;
+        feedbackL = lowCutFilter.processSample(0, feedbackL);
+        feedbackL = highCutFilter.processSample(0, feedbackL);
+        
         feedbackR = wetR * params.feedback;
+        feedbackR = lowCutFilter.processSample(1, feedbackR);
+        feedbackR = highCutFilter.processSample(1, feedbackR);
 
         float mixL = dryL + wetL;
         float mixR = dryR + wetR;
