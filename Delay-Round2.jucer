@@ -7,6 +7,7 @@
               pluginManufacturerCode="Raip" pluginCode="Raid" pluginFormats="buildAU,buildVST3">
   <MAINGROUP id="O81Np2" name="Delay-Round2">
     <GROUP id="{6B1DE780-54B7-3A42-CF85-039C4E169415}" name="Source">
+      <FILE id="ziCnTX" name="DSP.h" compile="0" resource="0" file="Source/DSP.h"/>
       <FILE id="QWBwUI" name="Parameters.cpp" compile="1" resource="0" file="Source/Parameters.cpp"/>
       <FILE id="uD9ZAd" name="Parameters.h" compile="0" resource="0" file="Source/Parameters.h"/>
       <FILE id="xAmk2w" name="PluginEditor.cpp" compile="1" resource="0"

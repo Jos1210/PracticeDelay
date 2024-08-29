@@ -116,13 +116,29 @@ void DelayRound2AudioProcessor::releaseResources()
 
 bool DelayRound2AudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-    return layouts.getMainOutputChannelSet() == juce::AudioChannelSet::stereo();
+    const auto mono = juce::AudioChannelSet::mono();
+    const auto stereo = juce::AudioChannelSet::stereo();
+    const auto mainIn = layouts.getMainInputChannelSet();
+    const auto mainOut = layouts.getMainOutputChannelSet();
+    
+    if (mainIn == mono && mainOut == mono)
+        return true;
+    
+    if (mainIn == mono && mainOut == stereo)
+        return true;
+    
+    if (mainIn == stereo && mainOut == stereo)
+        return true;
+    
+    return false;
 }
 #
 
 void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, [[maybe_unused]]juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
+    
+    //Get inpunts and outputs
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
     
@@ -136,21 +152,39 @@ void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     
     params.update();
     
+    //get Audio buffer data
     
-    float *channelDataL = buffer.getWritePointer(0);
-    float *channelDataR = buffer.getWritePointer(1);
+    /*
+    float *channelDataL = buffer.getWritePointer(0) //Obtiene valores del buffer del canal L
+    float *channelDataR = buffer.getWritePointer(1)
+     */
     
+    //For mono and stereo  bus compatibility
+    auto mainInput = getBusBuffer(buffer, true, 0);
+    auto mainInputChannels = mainInput.getNumChannels();
+    auto isMainInputStereo = mainInputChannels > 1;
+    const float *inputDataL = mainInput.getReadPointer(0);
+    const float *inputDataR = mainInput.getReadPointer(isMainInputStereo ? 1 : 0);
+    
+    auto mainOutput = getBusBuffer(buffer, false, 0);
+    auto mainOutputChannels = mainOutput.getNumChannels();
+    auto isMainOutputStereo = mainOutputChannels > 1;
+    float *outputDataL = mainOutput.getWritePointer(0);
+    float *outputDataR = mainOutput.getWritePointer(isMainOutputStereo ? 1 : 0);
+    
+    //Dsp process block
     for (int sample = 0; sample < buffer.getNumSamples(); ++sample){
         
         params.smoothen();
         float delayInSamples = (params.delayTime/1000.0f) * sampleRate;
         delayLine.setDelay(delayInSamples);
         
-        float dryL = channelDataL[sample]; //Lee los valores que entran
-        float dryR = channelDataR[sample];
+        float dryL = inputDataL[sample]; //Lee los valores que entran
+        float dryR = inputDataR[sample];
+        float dryMono = (dryL+dryR) * 0.5f;
         
-        delayLine.pushSample(0, dryL + feedbackL); //meter valor actual en delay line
-        delayLine.pushSample(1, dryR + feedbackR);
+        delayLine.pushSample(0, (dryMono * params.panL) + feedbackR); //meter valor actual en delay line
+        delayLine.pushSample(1, (dryMono * params.panR) + feedbackL);
         
         dryL *= params.drySignal; //Aplica el % de Dry para la salida
         dryR *= params.drySignal;
@@ -164,8 +198,8 @@ void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         float mixL = dryL + wetL;
         float mixR = dryR + wetR;
         
-        channelDataL[sample] = mixL * params.outGain;
-        channelDataR[sample] = mixR * params.outGain;
+        outputDataL[sample] = mixL * params.outGain;
+        outputDataR[sample] = mixR * params.outGain;
 
     }
     

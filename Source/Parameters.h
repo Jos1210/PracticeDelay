@@ -9,6 +9,7 @@ const juce::ParameterID delayTimeParamID { "delayTime", 1 };
 const juce::ParameterID drySignalParamID {"Dry", 1};
 const juce::ParameterID wetSignalParamID {"Wet", 1};
 const juce::ParameterID feedbackParamID {"Feedback", 1};
+const juce::ParameterID stereoParamID{ "Stereo", 1};
 
 
 class Parameters
@@ -22,8 +23,11 @@ public:
     float drySignal = 1.0; //Will reference amount of dry in %
     float wetSignal = 0.5f; //Will reference amount of wet in %
     
+    float panL = 0.0f;
+    float panR = 1.0f;
+    
     static constexpr float minDelayTime = 5.0f; //t en ms
-    static constexpr float maxDelayTime = 5000.0f;
+    static constexpr float maxDelayTime = 5000.0f;  //here static means it can be called as a variable instead of class member
     
     //Funciones
     Parameters(juce::AudioProcessorValueTreeState &apvts); //Const
@@ -52,6 +56,9 @@ private:
     
     juce::AudioParameterFloat *feedbackParam;
     juce::LinearSmoothedValue<float> feedbackSmoother;
+    
+    juce::AudioParameterFloat *stereoParam;
+    juce::LinearSmoothedValue<float> stereoSmoother;
     
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Parameters)

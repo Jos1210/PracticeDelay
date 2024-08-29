@@ -36,7 +36,8 @@ private:
     RotaryKnob delayTimeKnob{ "Delay Time", audioProcessor.apvts, delayTimeParamID };
     RotaryKnob drySignalKnob{ "Dry", audioProcessor.apvts, drySignalParamID };
     RotaryKnob wetSignalKnob{ "Wet", audioProcessor.apvts, wetSignalParamID };
-    RotaryKnob feedbackKnob{ "Feedback", audioProcessor.apvts, feedbackParamID};
+    RotaryKnob feedbackKnob{ "Feedback", audioProcessor.apvts, feedbackParamID}; //That true allows -values
+    RotaryKnob stereoKnob{ "Stereo" , audioProcessor.apvts, stereoParamID};
     
     juce::GroupComponent delayGroup, feedbackGroup, outputGroup;
 

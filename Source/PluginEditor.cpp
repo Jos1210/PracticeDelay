@@ -21,6 +21,7 @@ DelayRound2AudioProcessorEditor::DelayRound2AudioProcessorEditor (DelayRound2Aud
     feedbackGroup.setText("Feedback");
     feedbackGroup.setTextLabelPosition(juce::Justification::horizontallyCentred);
     feedbackGroup.addAndMakeVisible(feedbackKnob);
+    feedbackGroup.addAndMakeVisible(stereoKnob);
     addAndMakeVisible(feedbackGroup);
     
     outputGroup.setText("Output");
@@ -62,6 +63,7 @@ void DelayRound2AudioProcessorEditor::resized()
     delayTimeKnob.setTopLeftPosition(20, 20);
     
     feedbackKnob.setTopLeftPosition(20, 20);
+    stereoKnob.setTopLeftPosition(feedbackKnob.getX(), feedbackKnob.getBottom() +10);
     
     drySignalKnob.setTopLeftPosition(20, 20);
     wetSignalKnob.setTopLeftPosition(drySignalKnob.getX(), drySignalKnob.getBottom() +10);

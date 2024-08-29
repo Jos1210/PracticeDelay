@@ -1,4 +1,5 @@
 #include "Parameters.h"
+#include "DSP.h"
 
 //Helper functions
 
@@ -55,6 +56,7 @@ Parameters::Parameters(juce::AudioProcessorValueTreeState &apvts){
     castParameter(apvts, drySignalParamID, drySignalParam);
     castParameter(apvts, wetSignalParamID, wetSignalParam);
     castParameter(apvts, feedbackParamID, feedbackParam);
+    castParameter(apvts, stereoParamID, stereoParam);
 
 }
 
@@ -116,6 +118,16 @@ juce::AudioProcessorValueTreeState::ParameterLayout
                 .withStringFromValueFunction(stringFromPercent)
         ));
         
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            stereoParamID, //ID {string, version (Int)}
+            "Stereo", // User visible text
+            juce::NormalisableRange<float> {0.0f, 100.0f, 1.0f},
+                                        // {range min, range max, step size, skew factor}
+            0.0f,
+            juce::AudioParameterFloatAttributes()
+                .withStringFromValueFunction(stringFromPercent)
+        ));
+        
         
         
         return layout;
@@ -136,6 +148,7 @@ void Parameters::update() noexcept{
         delayTime = targetDelayTime;
     
     feedbackSmoother.setTargetValue(feedbackParam->get() * 0.01f);
+    stereoSmoother.setTargetValue(stereoParam->get() * 0.01f);
 
     
 }
@@ -152,7 +165,7 @@ void Parameters::prepareToPlay(double sampleRate) noexcept{
     //Entre mas pequeño el coef, mas tardara el filtro en alcanzar el target
     
     feedbackSmoother.reset(sampleRate, duration);
-    
+    stereoSmoother.reset(sampleRate, duration);
     
 
 }
@@ -162,6 +175,9 @@ void Parameters::reset() noexcept{
     outGain = 0.0f;
     drySignal = 1.0f;
     wetSignal = 0.0f;
+    
+    panL = 0.0f;
+    panR = 1.0f;
     
     outGainSmoother.setCurrentAndTargetValue( //Setea Gain a 0 por precaución antes de repr
         juce::Decibels::decibelsToGain(outGainParam->get())
@@ -175,6 +191,8 @@ void Parameters::reset() noexcept{
     
     feedback = 0.0f;
     feedbackSmoother.setCurrentAndTargetValue(feedbackParam->get() * 0.01f);
+    
+    stereoSmoother.setCurrentAndTargetValue(stereoParam->get() * 0.01f);
    
     
 }
@@ -187,4 +205,5 @@ void Parameters:: smoothen() noexcept{
     delayTime += (targetDelayTime - delayTime) * delayOnePoleCoeff;
     feedback = feedbackSmoother.getNextValue();
     
+    panningEqualPower(stereoSmoother.getNextValue(), panL, panR);
 }
