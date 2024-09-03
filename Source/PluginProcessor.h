@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "Parameters.h"
+#include "Tempo.h"
 
 //constantes
 
@@ -73,12 +74,16 @@ private:
     float feedbackL = 0.0f;
     float feedbackR = 0.0f;
 
+    float lastLowCut = -1.0f;
+    float lastHighCut = -1.0f;
     Parameters params; // debe ir debajo de la inicialización del apvts
 
     juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> delayLine;
     
     juce::dsp::StateVariableTPTFilter<float> lowCutFilter;
     juce::dsp::StateVariableTPTFilter<float> highCutFilter;
+    
+    Tempo tempo;
     
     //Funciones
 

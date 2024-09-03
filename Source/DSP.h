@@ -11,3 +11,4 @@ inline void panningEqualPower(float panning, float &left, float &right){    //In
     left = std::cos(x);
     right = std::sin(x);
 }
+

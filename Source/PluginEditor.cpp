@@ -16,6 +16,15 @@ DelayRound2AudioProcessorEditor::DelayRound2AudioProcessorEditor (DelayRound2Aud
     delayGroup.setText("Delay");
     delayGroup.setTextLabelPosition(juce::Justification::horizontallyCentred);
     delayGroup.addAndMakeVisible(delayTimeKnob);
+    delayGroup.addAndMakeVisible(delayNoteKnob);
+    
+    //Sync Button
+    tempoSyncButton.setButtonText("Sync");
+    tempoSyncButton.setClickingTogglesState(true);
+    tempoSyncButton.setBounds(0, 0, 70, 27);
+    tempoSyncButton.setColour(juce::TextButton::ColourIds::buttonColourId, juce::Colours::rosybrown);
+    delayGroup.addAndMakeVisible(tempoSyncButton);
+    
     addAndMakeVisible(delayGroup);
     
     feedbackGroup.setText("Feedback");
@@ -32,6 +41,8 @@ DelayRound2AudioProcessorEditor::DelayRound2AudioProcessorEditor (DelayRound2Aud
     outputGroup.addAndMakeVisible(drySignalKnob);
     outputGroup.addAndMakeVisible(wetSignalKnob);
     addAndMakeVisible(outputGroup);
+    
+    
 
     setSize (500, 500);
 }
@@ -63,6 +74,8 @@ void DelayRound2AudioProcessorEditor::resized()
     
     //Posiciond e los knobs dentro de los grupos
     delayTimeKnob.setTopLeftPosition(20, 20);
+    tempoSyncButton.setTopLeftPosition(20, delayTimeKnob.getBottom() + 10);
+    delayNoteKnob.setTopLeftPosition(20, tempoSyncButton.getBottom() - 5);
     
     feedbackKnob.setTopLeftPosition(20, 20);
     stereoKnob.setTopLeftPosition(feedbackKnob.getRight() + 20, feedbackKnob.getY());

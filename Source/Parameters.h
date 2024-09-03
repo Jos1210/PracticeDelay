@@ -6,13 +6,14 @@
 //Consts
 const juce::ParameterID outGainParamID { "outGain", 1 };
 const juce::ParameterID delayTimeParamID { "delayTime", 1 };
-const juce::ParameterID drySignalParamID {"Dry", 1};
-const juce::ParameterID wetSignalParamID {"Wet", 1};
-const juce::ParameterID feedbackParamID {"Feedback", 1};
-const juce::ParameterID stereoParamID{ "Stereo", 1};
+const juce::ParameterID drySignalParamID {"Dry", 1 };
+const juce::ParameterID wetSignalParamID {"Wet", 1 };
+const juce::ParameterID feedbackParamID {"Feedback", 1 };
+const juce::ParameterID stereoParamID{ "Stereo", 1 };
 const juce::ParameterID lowCutParamID { "lowCut", 1 };
-const juce::ParameterID highCutParamID{ "highCut", 1};
-
+const juce::ParameterID highCutParamID{ "highCut", 1 };
+const juce::ParameterID tempoSyncParamID{ "TempoSync", 1 };
+const juce::ParameterID delayNoteParamID{ "delayNote", 1 };
 
 class Parameters
 {
@@ -30,6 +31,9 @@ public:
     
     float lowCut = 20.0f;
     float highCut = 20000.0f;
+    
+    int delayNote = 0;
+    bool tempoSync = false;
     
     static constexpr float minDelayTime = 5.0f; //t en ms
     static constexpr float maxDelayTime = 5000.0f;  //here static means it can be called as a variable instead of class member
@@ -70,6 +74,9 @@ private:
     
     juce::AudioParameterFloat *highCutParam;
     juce::LinearSmoothedValue<float> highCutSmoother;
+    
+    juce::AudioParameterBool *tempoSyncParam; //Usado para parametros prendido/apagado
+    juce::AudioParameterChoice *delayNoteParam; //Usado para parametros con opciones limitadas
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Parameters)
 };

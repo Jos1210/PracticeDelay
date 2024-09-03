@@ -80,6 +80,8 @@ Parameters::Parameters(juce::AudioProcessorValueTreeState &apvts){
     castParameter(apvts, stereoParamID, stereoParam);
     castParameter(apvts, lowCutParamID, lowCutParam);
     castParameter(apvts, highCutParamID, highCutParam);
+    castParameter(apvts, tempoSyncParamID, tempoSyncParam);
+    castParameter(apvts, delayNoteParamID, delayNoteParam);
 
 }
 
@@ -175,7 +177,21 @@ juce::AudioProcessorValueTreeState::ParameterLayout
                 .withValueFromStringFunction(hzFromString)
         ));
         
+        layout.add(std::make_unique<juce::AudioParameterBool>(
+            tempoSyncParamID,
+            "Tempo Sync",
+            false //Default Value
+        ));
         
+        juce::StringArray noteLengths = { "1/32", "1/16 trip", "1/32 dot", "1/16", "1/8 trip", "1/16 dot",
+            "1/8", "1/4 trip", "1/8 dot", "1/4", "1/2 trip", "1/4 dot", "1/2", "1/1 trip", "1/2 dot", "1/1"};
+        
+        layout.add(std::make_unique<juce::AudioParameterChoice>(
+            delayNoteParamID,
+            "Delay Note",
+            noteLengths,
+            9 //La posición 9 es la default (1/4)
+        ));
         
         return layout;
 }
@@ -199,8 +215,9 @@ void Parameters::update() noexcept{
     
     lowCutSmoother.setTargetValue(lowCutParam->get());
     highCutSmoother.setTargetValue(highCutParam->get());
-
     
+    delayNote = delayNoteParam->getIndex();
+    tempoSync = tempoSyncParam->get();
 }
 
 void Parameters::prepareToPlay(double sampleRate) noexcept{
@@ -219,7 +236,6 @@ void Parameters::prepareToPlay(double sampleRate) noexcept{
     
     lowCutSmoother.reset(sampleRate, duration);
     highCutSmoother.reset(sampleRate, duration);
-    
 
 }
 
@@ -250,9 +266,9 @@ void Parameters::reset() noexcept{
     lowCut = 20.0f;
     highCut = 20000.0f;
     
-    lowCutSmoother.setTargetValue(lowCutParam->get());
-    highCutSmoother.setTargetValue(highCutParam->get());
-   
+    lowCutSmoother.setCurrentAndTargetValue(lowCutParam->get());
+    highCutSmoother.setCurrentAndTargetValue(highCutParam->get());
+
 }
 
 void Parameters:: smoothen() noexcept{

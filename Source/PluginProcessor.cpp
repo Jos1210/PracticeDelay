@@ -115,6 +115,12 @@ void DelayRound2AudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     highCutFilter.prepare(spec);
     lowCutFilter.reset();
     highCutFilter.reset();
+    
+    lastLowCut = -1.0f;
+    lastHighCut = -1.0f;
+    
+    tempo.reset();
+
 }
 
 void DelayRound2AudioProcessor::releaseResources()
@@ -161,6 +167,12 @@ void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     
     params.update();
     
+    //Calculate Tempo
+    tempo.update(getPlayHead());
+    float syncedTime = float(tempo.getMillisecondsForNoteLength(params.delayNote));
+    if(syncedTime > Parameters::maxDelayTime)
+        syncedTime = Parameters::maxDelayTime;
+    
     //get Audio buffer data
     
     /*
@@ -186,11 +198,20 @@ void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         
         params.smoothen();
         
-        float delayInSamples = (params.delayTime/1000.0f) * sampleRate;
+        float delayTime = params.tempoSync ? syncedTime : params.delayTime;
+        float delayInSamples = delayTime / 1000.0f * sampleRate;
         delayLine.setDelay(delayInSamples);
         
-        lowCutFilter.setCutoffFrequency(params.lowCut);
-        highCutFilter.setCutoffFrequency(params.highCut);
+        //Filtros
+        if (params.lowCut != lastLowCut){
+            lowCutFilter.setCutoffFrequency(params.lowCut);
+            lastLowCut = params.lowCut;
+        }
+        
+        if (params.highCut != lastHighCut){
+            highCutFilter.setCutoffFrequency(params.highCut);
+            lastHighCut = params.highCut;
+        }
         
         float dryL = inputDataL[sample]; //Lee los valores que entran
         float dryR = inputDataR[sample];

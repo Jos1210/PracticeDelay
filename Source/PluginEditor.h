@@ -41,13 +41,18 @@ private:
     RotaryKnob lowCutKnob{ "Low Cut", audioProcessor.apvts, lowCutParamID};
     RotaryKnob highCutKnob{ "High Cut", audioProcessor.apvts, highCutParamID};
     
-    juce::GroupComponent delayGroup, feedbackGroup, outputGroup;
-
-
-
+    RotaryKnob delayNoteKnob{"Note", audioProcessor.apvts, delayNoteParamID};
     
+    juce::GroupComponent delayGroup, feedbackGroup, outputGroup;
+    
+    juce::TextButton tempoSyncButton;
+    
+    juce::AudioProcessorValueTreeState::ButtonAttachment tempoSyncAttachment{
+        audioProcessor.apvts, tempoSyncParamID.getParamID(), tempoSyncButton
+    };
+
     /*
-    juce::AudioProcessorValueTreeState::SliderAttachment attachment{ //Objeto attachment para enlazar outGain y componente
+    juce::AudioProcessorValueTreeState::SliderAttachment attachment{ //Objeto attachment para enlazar parametro y componente
         audioProcessor.apvts, outGainParamID.getParamID(), outGainKnob.slider}; //Para hacer sin implementarlo en el const de la custom class
     */
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DelayRound2AudioProcessorEditor) //Maneja automaticamente memory leaks
