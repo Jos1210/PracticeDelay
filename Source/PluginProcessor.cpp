@@ -98,13 +98,16 @@ void DelayRound2AudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     spec.maximumBlockSize = juce::uint32(samplesPerBlock);
     spec.numChannels = 2;
     
-    delayLine.prepare(spec); //asigna las especificaciones de spec
     
     //Inicializa el Delay
     double numSamples = (Parameters::maxDelayTime / 1000.0f) * sampleRate;
     int maxDelayInSamples = int(std::ceil(numSamples));
-    delayLine.setMaximumDelayInSamples(maxDelayInSamples);
-    delayLine.reset(); //inicializa el delay line
+    
+    delayLineL.setMaximumDelayInSamples(maxDelayInSamples);
+    delayLineL.reset();
+    
+    delayLineR.setMaximumDelayInSamples(maxDelayInSamples);
+    delayLineR.reset();
     
     //Feedback
     feedbackL = 0.0f;
@@ -200,8 +203,7 @@ void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         
         float delayTime = params.tempoSync ? syncedTime : params.delayTime;
         float delayInSamples = delayTime / 1000.0f * sampleRate;
-        delayLine.setDelay(delayInSamples);
-        
+                
         //Filtros
         if (params.lowCut != lastLowCut){
             lowCutFilter.setCutoffFrequency(params.lowCut);
@@ -217,14 +219,19 @@ void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         float dryR = inputDataR[sample];
         float dryMono = (dryL+dryR) * 0.5f;
         
-        delayLine.pushSample(0, (dryMono * params.panL) + feedbackR); //meter valor actual en delay line
-        delayLine.pushSample(1, (dryMono * params.panR) + feedbackL);
+        delayLineL.write(dryMono * params.panL + feedbackR); //meter valor actual en delay line
+        delayLineR.write(dryMono * params.panR + feedbackL);
         
         dryL *= params.drySignal; //Aplica el % de Dry para la salida
         dryR *= params.drySignal;
         
+        float wetL = delayLineL.read(delayInSamples) * params.wetSignal;
+        float wetR = delayLineR.read(delayInSamples) * params.wetSignal;
+        
+        /*
         float wetL = delayLine.popSample(0) * params.wetSignal; //Leer valor del pasado
         float wetR = delayLine.popSample(1) * params.wetSignal;
+        */
         
         //Define feedback y filtra el feedback
         feedbackL = wetL * params.feedback;

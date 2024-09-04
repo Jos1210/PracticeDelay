@@ -11,6 +11,7 @@
 #include <JuceHeader.h>
 #include "Parameters.h"
 #include "Tempo.h"
+#include "DelayLine.h"
 
 //constantes
 
@@ -64,6 +65,8 @@ public:
         *this, nullptr, "Parameters", Parameters::createParameterLayout()
     };
     
+    Parameters params; // debe ir debajo de la inicialización del apvts
+    
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DelayRound2AudioProcessor)
@@ -76,9 +79,8 @@ private:
 
     float lastLowCut = -1.0f;
     float lastHighCut = -1.0f;
-    Parameters params; // debe ir debajo de la inicialización del apvts
 
-    juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> delayLine;
+    DelayLine delayLineL, delayLineR;
     
     juce::dsp::StateVariableTPTFilter<float> lowCutFilter;
     juce::dsp::StateVariableTPTFilter<float> highCutFilter;

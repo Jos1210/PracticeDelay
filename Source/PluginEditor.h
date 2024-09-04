@@ -16,7 +16,8 @@
 //==============================================================================
 /**
 */
-class DelayRound2AudioProcessorEditor  : public juce::AudioProcessorEditor
+class DelayRound2AudioProcessorEditor  : public juce::AudioProcessorEditor,
+                                         private juce::AudioProcessorParameter::Listener
 {
 public:
     DelayRound2AudioProcessorEditor (DelayRound2AudioProcessor&);
@@ -27,7 +28,14 @@ public:
     void resized() override;
     
 private:
+    //Funciones
+    void parameterValueChanged(int, float) override;
     
+    void parameterGestureChanged(int, bool) override{} //Asi se escribe una función sin definición ({} y sin ;)
+    
+    void updateDelayKnobs(bool tempoSyncActive);
+    
+    //AudioProcessor
     DelayRound2AudioProcessor& audioProcessor; //Debe ir de primero
     
     
