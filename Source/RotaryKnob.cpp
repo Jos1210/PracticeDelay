@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "RotaryKnob.h"
+#include "LookAndFeel.h"
 
 //==============================================================================
 RotaryKnob::RotaryKnob(const juce::String &text,
@@ -17,7 +18,10 @@ RotaryKnob::RotaryKnob(const juce::String &text,
                        const juce::ParameterID &parameterID)
     :attachment(apvts, parameterID.getParamID(), slider)
 {
+    setLookAndFeel(RotaryKnobLookAndFeel::get());
     
+    float pi = juce::MathConstants<float>::pi;
+    slider.setRotaryParameters(1.25f * pi, 2.75f * pi, true);
     
     //Slider
     slider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag); //Por defecto ese es de 70x70 pixeles

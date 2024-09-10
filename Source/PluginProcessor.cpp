@@ -123,6 +123,9 @@ void DelayRound2AudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     lastHighCut = -1.0f;
     
     tempo.reset();
+    
+    levelL.store(0.0f); //Mejor usar Store para indicar en contexto el uso de una variable atómica
+    levelR.store(0.0f);
 
 }
 
@@ -150,7 +153,6 @@ bool DelayRound2AudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
     
     return false;
 }
-#
 
 void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, [[maybe_unused]]juce::MidiBuffer& midiMessages)
 {
@@ -195,6 +197,10 @@ void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     auto isMainOutputStereo = mainOutputChannels > 1;
     float *outputDataL = mainOutput.getWritePointer(0);
     float *outputDataR = mainOutput.getWritePointer(isMainOutputStereo ? 1 : 0);
+    
+    //Max levels
+    float maxL = 0.0f;
+    float maxR = 0.0f;
     
     //Dsp process block
     for (int sample = 0; sample < buffer.getNumSamples(); ++sample){
@@ -245,12 +251,17 @@ void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         float mixL = dryL + wetL;
         float mixR = dryR + wetR;
         
-        outputDataL[sample] = mixL * params.outGain;
-        outputDataR[sample] = mixR * params.outGain;
-
+        float outL = mixL * params.outGain;
+        float outR = mixR * params.outGain;
+        
+        outputDataL[sample] = outL;
+        outputDataR[sample] = outR;
+        
+        maxL = std::max(maxL, std::abs(outL)); //Max regresa el valor mas grande entre los dos entregados
+        maxR = std::max(maxR, std::abs(outR));
     }
-    
- 
+    levelL.store(maxL);
+    levelR.store(maxR);
 }
 
 //==============================================================================

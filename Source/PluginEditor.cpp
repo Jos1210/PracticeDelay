@@ -11,8 +11,10 @@
 
 //==============================================================================
 DelayRound2AudioProcessorEditor::DelayRound2AudioProcessorEditor (DelayRound2AudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+    : AudioProcessorEditor (&p), audioProcessor (p), meter(p.levelL, p.levelR)
 {
+    setLookAndFeel(&mainLF);
+    
     delayGroup.setText("Delay");
     delayGroup.setTextLabelPosition(juce::Justification::horizontallyCentred);
     delayGroup.addAndMakeVisible(delayTimeKnob);
@@ -40,8 +42,8 @@ DelayRound2AudioProcessorEditor::DelayRound2AudioProcessorEditor (DelayRound2Aud
     outputGroup.addAndMakeVisible(outGainKnob);
     outputGroup.addAndMakeVisible(drySignalKnob);
     outputGroup.addAndMakeVisible(wetSignalKnob);
+    outputGroup.addAndMakeVisible(meter);
     addAndMakeVisible(outputGroup);
-    
     
 
     setSize (500, 500);
@@ -61,7 +63,7 @@ DelayRound2AudioProcessorEditor::~DelayRound2AudioProcessorEditor()
 //==============================================================================
 void DelayRound2AudioProcessorEditor::paint (juce::Graphics& g)
 {
-    g.fillAll(juce::Colours::indigo);
+    g.fillAll(Colors::background);
 }
 
 void DelayRound2AudioProcessorEditor::resized()
@@ -92,6 +94,7 @@ void DelayRound2AudioProcessorEditor::resized()
     drySignalKnob.setTopLeftPosition(20, 20);
     wetSignalKnob.setTopLeftPosition(drySignalKnob.getX(), drySignalKnob.getBottom() +10);
     outGainKnob.setTopLeftPosition(drySignalKnob.getX(), wetSignalKnob.getBottom() +10);
+    meter.setBounds(outputGroup.getWidth() -45, 30, 30, outGainKnob.getBottom() - 30);
     
 }
 

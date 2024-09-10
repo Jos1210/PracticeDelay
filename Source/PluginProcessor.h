@@ -67,6 +67,10 @@ public:
     
     Parameters params; // debe ir debajo de la inicialización del apvts
     
+    std::atomic<float> levelL, levelR; //LAs variables atómicas avisan al compilador que
+    //Estas variables pueden ser usadas por multiples hilos de ejecución
+    
+    
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DelayRound2AudioProcessor)
