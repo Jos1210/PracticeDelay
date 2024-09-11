@@ -276,7 +276,8 @@ void Parameters:: smoothen() noexcept{
     drySignal = drySignalSmoother.getNextValue();
     wetSignal = wetSignalSmoother.getNextValue();
     
-    delayTime += (targetDelayTime - delayTime) * delayOnePoleCoeff;
+    //delayTime += (targetDelayTime - delayTime) * delayOnePoleCoeff;
+    delayTime = targetDelayTime;
     feedback = feedbackSmoother.getNextValue();
     
     panningEqualPower(stereoSmoother.getNextValue(), panL, panR);

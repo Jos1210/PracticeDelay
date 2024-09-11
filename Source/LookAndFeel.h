@@ -22,13 +22,6 @@ namespace Colors
     const juce::Colour outline { 255, 255, 255 };
     }
 
-    namespace LevelMeter{
-        const juce::Colour background { 74, 150, 113 };
-        const juce::Colour tickLine { 0, 0, 0 };
-        const juce::Colour tickLabel { 255, 255, 255 };
-        const juce::Colour tooLoud { 226, 74, 81 };
-        const juce::Colour levelOK { 65, 206, 88 };
-    }
 }
 
 class RotaryKnobLookAndFeel : public juce::LookAndFeel_V4

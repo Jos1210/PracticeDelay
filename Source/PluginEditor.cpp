@@ -11,7 +11,7 @@
 
 //==============================================================================
 DelayRound2AudioProcessorEditor::DelayRound2AudioProcessorEditor (DelayRound2AudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p), meter(p.levelL, p.levelR)
+    : AudioProcessorEditor (&p), audioProcessor (p)
 {
     setLookAndFeel(&mainLF);
     
@@ -42,11 +42,10 @@ DelayRound2AudioProcessorEditor::DelayRound2AudioProcessorEditor (DelayRound2Aud
     outputGroup.addAndMakeVisible(outGainKnob);
     outputGroup.addAndMakeVisible(drySignalKnob);
     outputGroup.addAndMakeVisible(wetSignalKnob);
-    outputGroup.addAndMakeVisible(meter);
     addAndMakeVisible(outputGroup);
     
 
-    setSize (500, 500);
+    setSize (500, 400);
     
     updateDelayKnobs(audioProcessor.params.tempoSyncParam->get());
     audioProcessor.params.tempoSyncParam->addListener(this);
@@ -75,7 +74,9 @@ void DelayRound2AudioProcessorEditor::resized()
     
     //Posicionamiento de grupos
     delayGroup.setBounds(10, y, 110, height); //(x, y, w, h)
-    outputGroup.setBounds(bounds.getWidth() - 160, y, 150, height);
+    //outputGroup.setBounds(bounds.getWidth() - 160, y, 150, height);
+    outputGroup.setBounds(bounds.getWidth() - 120, y, 110, height);
+
     
     feedbackGroup.setBounds(delayGroup.getRight() +10, y,
                             outputGroup.getX() - delayGroup.getRight() - 20, height
@@ -87,15 +88,13 @@ void DelayRound2AudioProcessorEditor::resized()
     delayNoteKnob.setTopLeftPosition(delayTimeKnob.getX(), delayTimeKnob.getY());
     
     feedbackKnob.setTopLeftPosition(20, 20);
-    stereoKnob.setTopLeftPosition(feedbackKnob.getRight() + 20, feedbackKnob.getY());
+    stereoKnob.setTopLeftPosition(feedbackKnob.getRight() + 60, feedbackKnob.getY());
     lowCutKnob.setTopLeftPosition(feedbackKnob.getX(), feedbackKnob.getBottom() + 10);
-    highCutKnob.setTopLeftPosition(lowCutKnob.getRight() + 20, lowCutKnob.getY());
+    highCutKnob.setTopLeftPosition(lowCutKnob.getRight() + 60, lowCutKnob.getY());
     
     drySignalKnob.setTopLeftPosition(20, 20);
     wetSignalKnob.setTopLeftPosition(drySignalKnob.getX(), drySignalKnob.getBottom() +10);
     outGainKnob.setTopLeftPosition(drySignalKnob.getX(), wetSignalKnob.getBottom() +10);
-    meter.setBounds(outputGroup.getWidth() -45, 30, 30, outGainKnob.getBottom() - 30);
-    
 }
 
 //User added function definitions

@@ -12,7 +12,6 @@
 #include "PluginProcessor.h"
 #include "Parameters.h"
 #include "RotaryKnob.h"
-#include "LevelMeter.h"
 #include "LookAndFeel.h"
 
 //==============================================================================
@@ -66,7 +65,6 @@ private:
         audioProcessor.apvts, outGainParamID.getParamID(), outGainKnob.slider}; //Para hacer sin implementarlo en el const de la custom class
     */
     
-    LevelMeter meter;
     MainLookAndFeel mainLF;
    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DelayRound2AudioProcessorEditor) //Maneja automaticamente memory leaks

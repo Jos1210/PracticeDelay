@@ -67,8 +67,13 @@ public:
     
     Parameters params; // debe ir debajo de la inicialización del apvts
     
-    std::atomic<float> levelL, levelR; //LAs variables atómicas avisan al compilador que
+    //std::atomic<float> levelL, levelR; //LAs variables atómicas avisan al compilador que
     //Estas variables pueden ser usadas por multiples hilos de ejecución
+    
+    float delayInSamples = 0.0f;
+    float targetDelay = 0.0f;
+    float xfade = 0.0f;
+    float xfadeInc = 0.0f; //StepSize for the xfade
     
     
 private:

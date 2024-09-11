@@ -124,9 +124,12 @@ void DelayRound2AudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     
     tempo.reset();
     
-    levelL.store(0.0f); //Mejor usar Store para indicar en contexto el uso de una variable atómica
-    levelR.store(0.0f);
+    //levelL.store(0.0f); //Mejor usar Store para indicar en contexto el uso de una variable atómica
 
+    delayInSamples = 0.0f;
+    targetDelay = 0.0f;
+    xfade = 0.0f;
+    xfadeInc = static_cast<float>(1.0/(0.05 * sampleRate)); //50ms
 }
 
 void DelayRound2AudioProcessor::releaseResources()
@@ -198,17 +201,24 @@ void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     float *outputDataL = mainOutput.getWritePointer(0);
     float *outputDataR = mainOutput.getWritePointer(isMainOutputStereo ? 1 : 0);
     
-    //Max levels
-    float maxL = 0.0f;
-    float maxR = 0.0f;
-    
     //Dsp process block
     for (int sample = 0; sample < buffer.getNumSamples(); ++sample){
         
         params.smoothen();
         
-        float delayTime = params.tempoSync ? syncedTime : params.delayTime;
-        float delayInSamples = delayTime / 1000.0f * sampleRate;
+        //Delay
+        if (xfade == 0.0f){
+            
+            float delayTime = params.tempoSync ? syncedTime : params.delayTime;
+            targetDelay = delayTime / 1000.0f * sampleRate;
+            
+            if (delayInSamples == 0.0f){ //Primera vez
+                delayInSamples = targetDelay;
+            
+            } else if (targetDelay != delayInSamples) //Empiece crossfade
+                xfade = xfadeInc;
+            
+        }
                 
         //Filtros
         if (params.lowCut != lastLowCut){
@@ -234,6 +244,21 @@ void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         float wetL = delayLineL.read(delayInSamples) * params.wetSignal;
         float wetR = delayLineR.read(delayInSamples) * params.wetSignal;
         
+        if (xfade > 0.0f){
+            
+            float newL = delayLineL.read(targetDelay);
+            float newR = delayLineR.read(targetDelay);
+            
+            wetL = (1.0f - xfade) * wetL + xfade * newL;
+            wetR = (1.0f - xfade) * wetR + xfade * newR;
+            
+            xfade += xfadeInc;
+            if(xfade >= 1.0f){
+                delayInSamples = targetDelay;
+                xfade = 0.0f;
+            }
+        }
+        
         /*
         float wetL = delayLine.popSample(0) * params.wetSignal; //Leer valor del pasado
         float wetR = delayLine.popSample(1) * params.wetSignal;
@@ -257,11 +282,9 @@ void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         outputDataL[sample] = outL;
         outputDataR[sample] = outR;
         
-        maxL = std::max(maxL, std::abs(outL)); //Max regresa el valor mas grande entre los dos entregados
-        maxR = std::max(maxR, std::abs(outR));
+        //maxL = std::max(maxL, std::abs(outL)); //Max regresa el valor mas grande entre los dos entregados
     }
-    levelL.store(maxL);
-    levelR.store(maxR);
+    //levelL.store(maxL);
 }
 
 //==============================================================================
