@@ -82,6 +82,7 @@ Parameters::Parameters(juce::AudioProcessorValueTreeState &apvts){
     castParameter(apvts, highCutParamID, highCutParam);
     castParameter(apvts, tempoSyncParamID, tempoSyncParam);
     castParameter(apvts, delayNoteParamID, delayNoteParam);
+    castParameter(apvts, bypassParamID, bypassParam);
 
 }
 
@@ -193,6 +194,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout
             9 //La posición 9 es la default (1/4)
         ));
         
+        //Bypass
+        layout.add(std::make_unique<juce::AudioParameterBool>(
+            bypassParamID,
+            "Bypass",
+            false //Default Value
+        ));
+        
         return layout;
 }
 
@@ -218,6 +226,8 @@ void Parameters::update() noexcept{
     
     delayNote = delayNoteParam->getIndex();
     tempoSync = tempoSyncParam->get();
+    
+    bypassed = bypassParam->get();
 }
 
 void Parameters::prepareToPlay(double sampleRate) noexcept{

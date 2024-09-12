@@ -59,8 +59,12 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
-    
     //User Defined
+    
+    //Functions
+    juce::AudioProcessorParameter* getBypassParameter() const override;
+    
+    //Variables
     juce::AudioProcessorValueTreeState apvts{
         *this, nullptr, "Parameters", Parameters::createParameterLayout()
     };
@@ -70,11 +74,21 @@ public:
     //std::atomic<float> levelL, levelR; //LAs variables atómicas avisan al compilador que
     //Estas variables pueden ser usadas por multiples hilos de ejecución
     
+    /* xfade approach
     float delayInSamples = 0.0f;
     float targetDelay = 0.0f;
     float xfade = 0.0f;
     float xfadeInc = 0.0f; //StepSize for the xfade
+    */
     
+    //Ducking approach with 1 pole filtering
+    float delayInSamples = 0.0f;
+    float targetDelay = 0.0f;
+    float fade = 0.0f;
+    float fadeTarget = 0.0f;
+    float coeff = 0.0f;
+    float wait = 0.0f;
+    float waitInc = 0.0f; //StepSize
     
 private:
     //==============================================================================

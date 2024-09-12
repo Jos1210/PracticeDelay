@@ -27,6 +27,13 @@ DelayRound2AudioProcessorEditor::DelayRound2AudioProcessorEditor (DelayRound2Aud
     tempoSyncButton.setColour(juce::TextButton::ColourIds::buttonColourId, juce::Colours::rosybrown);
     delayGroup.addAndMakeVisible(tempoSyncButton);
     
+    //Bypass Button
+    bypassButton.setButtonText("Bypass");
+    bypassButton.setClickingTogglesState(true);
+    bypassButton.setBounds(0, 0, 70, 27);
+    bypassButton.setColour(juce::TextButton::ColourIds::buttonColourId, juce::Colours::rosybrown);
+    delayGroup.addAndMakeVisible(bypassButton);
+    
     addAndMakeVisible(delayGroup);
     
     feedbackGroup.setText("Feedback");
@@ -85,6 +92,7 @@ void DelayRound2AudioProcessorEditor::resized()
     //Posiciond e los knobs dentro de los grupos
     delayTimeKnob.setTopLeftPosition(20, 20);
     tempoSyncButton.setTopLeftPosition(20, delayTimeKnob.getBottom() + 10);
+    bypassButton.setTopLeftPosition(20, tempoSyncButton.getBottom() + 10);
     delayNoteKnob.setTopLeftPosition(delayTimeKnob.getX(), delayTimeKnob.getY());
     
     feedbackKnob.setTopLeftPosition(20, 20);

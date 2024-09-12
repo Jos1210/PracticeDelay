@@ -126,10 +126,21 @@ void DelayRound2AudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     
     //levelL.store(0.0f); //Mejor usar Store para indicar en contexto el uso de una variable atómica
 
-    delayInSamples = 0.0f;
-    targetDelay = 0.0f;
+    /* xfade approach
     xfade = 0.0f;
     xfadeInc = static_cast<float>(1.0/(0.05 * sampleRate)); //50ms
+     */
+    
+    delayInSamples = 0.0f;
+    targetDelay = 0.0f;
+    fade = 1.0f; //Envelope level
+    fadeTarget = 1.0f; //level that the 1 pole wants to reach
+    //Both being 1 means there's no ducking to be made
+    coeff = 1.0f - std::exp(-1.0f / (0.05f * float(sampleRate)));
+    wait = 0.0f;
+    waitInc = 1.0f / (0.3f * float(sampleRate)); //300ms
+    
+    
 }
 
 void DelayRound2AudioProcessor::releaseResources()
@@ -207,19 +218,22 @@ void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         params.smoothen();
         
         //Delay
-        if (xfade == 0.0f){
-            
-            float delayTime = params.tempoSync ? syncedTime : params.delayTime;
-            targetDelay = delayTime / 1000.0f * sampleRate;
-            
-            if (delayInSamples == 0.0f){ //Primera vez
-                delayInSamples = targetDelay;
-            
-            } else if (targetDelay != delayInSamples) //Empiece crossfade
-                xfade = xfadeInc;
-            
-        }
+        float delayTime = params.tempoSync ? syncedTime : params.delayTime;
+        float newTargetDelay = delayTime / 1000.0f * sampleRate;
                 
+        if (newTargetDelay != targetDelay){
+            
+            targetDelay = newTargetDelay;
+            
+            if(delayInSamples == 0.0f){
+                delayInSamples = targetDelay;
+                
+            }else{
+                wait = waitInc; //Comience el contador
+                fadeTarget = 0.0f; //FadeOut
+            }
+        }
+        
         //Filtros
         if (params.lowCut != lastLowCut){
             lowCutFilter.setCutoffFrequency(params.lowCut);
@@ -244,22 +258,20 @@ void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         float wetL = delayLineL.read(delayInSamples) * params.wetSignal;
         float wetR = delayLineR.read(delayInSamples) * params.wetSignal;
         
-        if (xfade > 0.0f){
-            
-            float newL = delayLineL.read(targetDelay);
-            float newR = delayLineR.read(targetDelay);
-            
-            wetL = (1.0f - xfade) * wetL + xfade * newL;
-            wetR = (1.0f - xfade) * wetR + xfade * newR;
-            
-            xfade += xfadeInc;
-            if(xfade >= 1.0f){
+        fade += (fadeTarget - fade) * coeff;
+        wetL *= fade;
+        wetR *= fade;
+        
+        if (wait > 0.0f){
+            wait += waitInc;
+            if (wait >= 1.0f){
                 delayInSamples = targetDelay;
-                xfade = 0.0f;
+                wait = 0.0f;
+                fadeTarget = 1.0f;
             }
         }
         
-        /*
+        /* juce::dsp::DelayLine approach
         float wetL = delayLine.popSample(0) * params.wetSignal; //Leer valor del pasado
         float wetR = delayLine.popSample(1) * params.wetSignal;
         */
@@ -278,6 +290,11 @@ void DelayRound2AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         
         float outL = mixL * params.outGain;
         float outR = mixR * params.outGain;
+        
+        if (params.bypassed){
+            outL = dryL;
+            outR = dryR;
+        }
         
         outputDataL[sample] = outL;
         outputDataR[sample] = outR;
@@ -316,6 +333,11 @@ void DelayRound2AudioProcessor::setStateInformation (const void* data, int sizeI
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new DelayRound2AudioProcessor();
+}
+
+//User added
+juce::AudioProcessorParameter* DelayRound2AudioProcessor::getBypassParameter()const{
+    return params.bypassParam;
 }
 
 

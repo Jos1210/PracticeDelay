@@ -55,11 +55,16 @@ private:
     juce::GroupComponent delayGroup, feedbackGroup, outputGroup;
     
     juce::TextButton tempoSyncButton;
-    
+
     juce::AudioProcessorValueTreeState::ButtonAttachment tempoSyncAttachment{
         audioProcessor.apvts, tempoSyncParamID.getParamID(), tempoSyncButton
     };
 
+    juce::TextButton bypassButton;
+    
+    juce::AudioProcessorValueTreeState::ButtonAttachment bypassAttachment{
+      audioProcessor.apvts, bypassParamID.getParamID(), bypassButton
+    };
     /*
     juce::AudioProcessorValueTreeState::SliderAttachment attachment{ //Objeto attachment para enlazar parametro y componente
         audioProcessor.apvts, outGainParamID.getParamID(), outGainKnob.slider}; //Para hacer sin implementarlo en el const de la custom class
