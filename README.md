@@ -16,4 +16,3 @@ https://drive.google.com/drive/folders/1BXC7-u3VB-MmYgmtEmgoc-1H7A1GkCcC?usp=sha
 You might have problems on mac reading that since it is not signed,
 you will find all the code in the repo to build it yourself anyway.
 
-//Windows version not available yet//
